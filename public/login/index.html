@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام مصادقة Supabase</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans p-4" hidden>
+
+    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">بوابة الدخول والتسجيل</h2>
+
+<div id="auth-section">
+    <!-- أزرار التبديل بين النموذجين -->
+    <div class="flex mb-6 border-b">
+        <button id="tab-login" onclick="showTab('login')" 
+            class="flex-1 py-2 font-bold text-green-600 border-b-2 border-green-600 cursor-pointer">
+            تسجيل الدخول
+        </button>
+        <button id="tab-register" onclick="showTab('register')" 
+            class="flex-1 py-2 font-bold text-gray-400 cursor-pointer">
+            حساب جديد
+        </button>
+    </div>
+    <!-- نموذج تسجيل الدخول -->
+    <div id="login-form">
+        <input type="email" id="login-email" placeholder="البريد الإلكتروني" class="w-full border p-2 mb-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" dir="ltr">
+        <input type="password" id="login-password" placeholder="كلمة المرور" class="w-full border p-2 mb-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" dir="ltr">
+        
+        <button onclick="login()" class="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700 cursor-pointer">تسجيل الدخول</button>
+    </div>
+
+    <!-- نموذج إنشاء حساب -->
+    <div id="register-form" class="hidden">
+        <input type="email" id="register-email" placeholder="البريد الإلكتروني" class="w-full border p-2 mb-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" dir="ltr">
+        <input type="password" id="register-password" placeholder="كلمة المرور" class="w-full border p-2 mb-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" dir="ltr">
+        
+        <hr class="my-4 border-gray-200">
+        
+        <input type="text" id="username" placeholder="اسم المستخدم" class="w-full border p-2 mb-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <input type="tel" id="phone" placeholder="رقم الهاتف" class="w-full border p-2 mb-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" dir="ltr">
+        
+        <div class="flex gap-4 mb-4">
+            <select id="gender" class="w-1/2 border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <option value="" disabled selected>الجنس</option>
+                <option value="male">ذكر</option>
+                <option value="female">أنثى</option>
+            </select>
+            <input type="number" id="age" placeholder="السن" min="10" max="100" class="w-1/2 border p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400" dir="ltr">
+        </div>
+        
+        <button onclick="register()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 cursor-pointer">إنشاء حساب جديد</button>
+    </div>
+
+    <p id="error-message" class="text-red-500 text-sm mt-4 text-center hidden"></p>
+</div>
+
+
+
+    <script src="auth.js"></script>
+</body>
+</html>
