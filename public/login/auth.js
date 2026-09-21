@@ -26,7 +26,8 @@ function showTab(tab) {
         tabLogin.classList.remove('text-gray-400');
         tabRegister.classList.remove('text-green-600', 'border-b-2', 'border-green-600');
         tabRegister.classList.add('text-gray-400');
-    } else {
+    }
+    if (tab === 'register') {
         registerForm.classList.remove('hidden');
         loginForm.classList.add('hidden');
         tabRegister.classList.add('text-green-600', 'border-b-2', 'border-green-600');

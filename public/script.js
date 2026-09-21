@@ -7,8 +7,8 @@ const errorMessage = document.getElementById('error-message');
 
 supabaseClient.auth.onAuthStateChange(async (event, session) => {
     if (session) {
-        window.location.href = '/home';
+        window.location.href = './home';
     } else {
-        document.body.classList.remove('hidden');
+        document.body.removeAttribute('hidden');
     }
 });
