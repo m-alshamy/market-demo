@@ -7,6 +7,9 @@
     <title>الصفحة الرئيسية</title>
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="interface.js" defer></script>
+    <script src="wallet.js" defer></script>
+    <!-- <script src="main.js"></script> -->
 </head>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans p-4" hidden>
@@ -23,7 +26,7 @@
                 class="w-full bg-red-600 text-white p-2 rounded hover:bg-red-700 cursor-pointer">تسجيل الخروج</button>
         </div>
 
-        <div class="bg-white p-8 rounded-2xl shadow-lg text-center w-full hidden">
+        <!-- <div class="bg-white p-8 rounded-2xl shadow-lg text-center w-full">
             <h1 class="text-2xl font-bold mb-4">كورس البرمجة المتقدم</h1>
             <p class="text-gray-400 mb-6">تعلم بناء تطبيقات الويب باحترافية.</p>
             <div class="text-xl font-semibold mb-6">السعر: 150 ج.م</div>
@@ -32,11 +35,12 @@
                 شراء الآن
             </button>
             <p id="errorMsg" class="text-red-400 mt-4 text-sm hidden"></p>
-        </div>
+        </div> -->
 
         <div class="bg-white p-8 rounded-2xl shadow-lg text-center w-full">
             <h2 class="text-xl font-bold mb-2">محفظة النقاط</h2>
-            <p class="text-gray-600 mb-4">رصيدك الحالي: <span id="walletBalance" class="font-bold text-green-600">0</span> ج.م</p>
+            <p class="text-gray-600 mb-4">رصيدك الحالي: <span id="walletBalance"
+                    class="font-bold text-green-600"></span> ج.م</p>
             <input type="number" id="rechargeAmount" placeholder="أدخل المبلغ" min="1"
                 class="w-full border p-2 mb-3 rounded focus:outline-none focus:ring-2 focus:ring-purple-400" dir="ltr">
             <button id="rechargeButton"
@@ -47,10 +51,6 @@
         </div>
 
     </div>
-
-    <script src="interface.js"></script>
-    <script src="wallet.js"></script>
-    <script src="main.js"></script>
 </body>
 
 </html>

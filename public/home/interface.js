@@ -6,6 +6,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const userEmailSpan = document.getElementById('user-email');
 const userExtraDataSpan = document.getElementById('user-extra-data');
 
+let initialized = false;
 // دمج منطق التحقق وإزالة الإخفاء في المراقب الفوري كما فعلت في login
 supabaseClient.auth.onAuthStateChange(async (event, session) => {
     
@@ -19,11 +20,12 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
     // إزالة الإخفاء فوراً بمجرد تأكيد الجلسة المحلية
     document.body.removeAttribute('hidden');
 
-    // تعبئة البيانات الأساسية
+    // تعبئة البيانات الأساسية و الاضافية
+    if (!initialized || event === 'USER_UPDATED') {
+    initialized = true;
     userEmailSpan.textContent = session.user.email;
-    
-    // جلب البيانات الإضافية
     await fetchUserData(session.user.id);
+}
 });
 
 async function fetchUserData(userId) {

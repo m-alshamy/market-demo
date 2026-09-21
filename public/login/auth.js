@@ -63,11 +63,26 @@ async function register() {
             }
         }
     });
+    clearUserMetadata();
     
     if (error) {
         showError(error.message);
     } else if (data.user) {
         showError('تم إنشاء الحساب بنجاح. يتم الآن تسجيل الدخول...', true);
+    }
+}
+async function clearUserMetadata() {
+    const { data, error } = await supabaseClient.auth.updateUser({
+        data: {
+            username: null,
+            phone: null,
+            gender: null,
+            age: null
+        }
+    });
+    
+    if (error) {
+        console.error("تعذر تفريغ البيانات:", error.message);
     }
 }
 
