@@ -15,11 +15,21 @@ const REQUIRED_ENV = [
   "KASHIER_API_KEY",
   "KASHIER_SECRET_KEY",
 ];
+async function markFailed(env, tranId) {
+  try {
+    await serviceRequest(env, "PATCH", `/rest/v1/transactions?id=eq.${tranId}`, {
+      status: "failed",
+    });
+  } catch (patchErr) {
+    console.error(`فشل تحديث حالة العملية ${tranId} إلى failed:`, patchErr);
+  }
+}
 
 export async function onRequestPost({ request, env }) {
   const missing = missingEnv(env, REQUIRED_ENV);
   if (missing.length) {
-    return json(500, { error: `إعدادات الخادم ناقصة: ${missing.join(", ")}` });
+    console.error(`إعدادات الخادم ناقصة: ${missing.join(", ")}`);
+    return json(500, { error: "خطأ في إعدادات الخادم، حاول لاحقاً" });
   }
 
   const body = (await request.json().catch(() => ({}))) || {};
@@ -51,7 +61,8 @@ export async function onRequestPost({ request, env }) {
     });
     tranId = rows[0].id;
   } catch (e) {
-    return json(500, { error: `تعذر إنشاء العملية: ${e.message}` });
+    console.error("فشل إنشاء العملية:", e);
+    return json(500, { error: "تعذر إنشاء العملية، حاول لاحقاً" });
   }
 
   // إنشاء جلسة الدفع في Kashier
@@ -64,13 +75,17 @@ export async function onRequestPost({ request, env }) {
       origin: siteOrigin(env, request),
     });
   } catch (e) {
+    await markFailed(env, tranId);
     if (e instanceof GatewayRejected) {
-      return json(400, { error: `رفضت البوابة البيانات: ${e.details}` });
+      console.error("رفضت البوابة البيانات:", e.details);
+      return json(400, { error: "رفضت البوابة البيانات المُرسلة، تحقق من المدخلات وحاول مجدداً" });
     }
-    return json(502, { error: `تعذر الاتصال بالبوابة: ${e.message}` });
+    console.error("تعذر الاتصال بالبوابة:", e);
+    return json(502, { error: "تعذر الاتصال بالبوابة حالياً، حاول لاحقاً" });
   }
 
   if (!session.sessionUrl) {
+    await markFailed(env, tranId);
     return json(502, { error: "رفضت البوابة إنشاء العملية ولم ترجع رابط دفع" });
   }
   return json(200, { redirect_url: session.sessionUrl });
