@@ -7,7 +7,7 @@ async function fetchWalletBalance() {
 
     const { data, error } = await supabaseClient
         .from('wallet')
-        .select('b')
+        .select('balance')
         .eq('user_id', session.user.id)
         .single();
 
