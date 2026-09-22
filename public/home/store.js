@@ -27,6 +27,7 @@ async function purchaseCourse(courseId, buttonEl) {
         if (data.success) {
             alert('تم الشراء بنجاح');
             if (typeof fetchWalletBalance === 'function') fetchWalletBalance();
+            if (typeof refreshCourses === 'function') refreshCourses();
         } else {
             alert(data.error || 'تعذر إتمام الشراء');
         }
