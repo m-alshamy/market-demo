@@ -41,15 +41,20 @@ export async function onRequestPost({ request, env }) {
   if (!user || !user.id) return json(401, { error: "الجلسة غير صالحة" });
 
   // التحقق من المبلغ
-  const raw = body.amount;
-  const amount =
-    typeof raw === "number" || (typeof raw === "string" && raw.trim() !== "")
-      ? Number(raw)
-      : NaN;
-  if (!Number.isFinite(amount)) return json(400, { error: "مبلغ غير صالح" });
-  if (amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
-    return json(400, { error: "المبلغ خارج الحد المسموح" });
-  }
+// التحقق من المبلغ
+const raw = body.amount;
+const numericAmount =
+  typeof raw === "number" || (typeof raw === "string" && raw.trim() !== "")
+    ? Number(raw)
+    : NaN;
+if (!Number.isFinite(numericAmount)) return json(400, { error: "مبلغ غير صالح" });
+
+// تقريب لأقرب رقم صحيح
+const amount = Math.round(numericAmount);
+
+if (amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
+  return json(400, { error: "المبلغ خارج الحد المسموح" });
+}
 
   // إنشاء العملية بحالة pending
   let tranId;
