@@ -5,14 +5,15 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const userEmailSpan = document.getElementById('user-email');
 const userExtraDataSpan = document.getElementById('user-extra-data');
+const USER_DATA_CACHE_KEY = 'user_data_cache';
 
 let initialized = false;
 // دمج منطق التحقق وإزالة الإخفاء في المراقب الفوري كما فعلت في login
 supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    
+
     // في حال عدم وجود جلسة نشطة
     if (!session) {
-        // إذا كان الحدث تسجيل خروج صريح يذهب للرئيسية، وإلا لصفحة الدخول
+        clearCachedUserData();
         window.location.href = (event === 'SIGNED_OUT') ? '/' : '../login';
         return;
     }
@@ -22,11 +23,40 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
 
     // تعبئة البيانات الأساسية و الاضافية
     if (!initialized || event === 'USER_UPDATED') {
-    initialized = true;
-    userEmailSpan.textContent = session.user.email;
-    await fetchUserData(session.user.id);
-}
+        initialized = true;
+        userEmailSpan.textContent = session.user.email;
+        await loadUserData(session.user.id, event === 'USER_UPDATED');
+    }
 });
+
+function clearCachedUserData() {
+    localStorage.removeItem(USER_DATA_CACHE_KEY);
+}
+
+function renderUserData(data) {
+    userExtraDataSpan.innerHTML = `
+        الاسم: ${data.username} <br>
+        الهاتف: <span dir="ltr">${data.phone}</span> <br>
+        النوع: ${data.gender} <br>
+        العمر: ${data.age}
+    `;
+}
+
+async function loadUserData(userId, forceRefresh = false) {
+    if (!forceRefresh) {
+        const cached = localStorage.getItem(USER_DATA_CACHE_KEY);
+        if (cached) {
+            try {
+                renderUserData(JSON.parse(cached));
+                return;
+            } catch (e) {
+                localStorage.removeItem(USER_DATA_CACHE_KEY);
+            }
+        }
+    }
+
+    await fetchUserData(userId);
+}
 
 async function fetchUserData(userId) {
     const { data, error } = await supabaseClient
@@ -36,13 +66,10 @@ async function fetchUserData(userId) {
         .single();
 
     if (data) {
-        userExtraDataSpan.innerHTML = `
-            الاسم: ${data.username} <br>
-            الهاتف: <span dir="ltr">${data.phone}</span> <br>
-            النوع: ${data.gender} <br>
-            العمر: ${data.age}
-        `;
-    } else if (error) {
+        localStorage.setItem(USER_DATA_CACHE_KEY, JSON.stringify(data));
+        renderUserData(data);
+    }
+    else if (error) {
         userExtraDataSpan.textContent = 'تعذر جلب البيانات المرتبطة';
     }
 }
