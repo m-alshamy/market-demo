@@ -4,7 +4,7 @@ async function fetchCourses() {
     // 1) كل الكورسات المتاحة: المعرف والسعر، من جدول courses مباشرة
     const { data: allCourses, error: coursesError } = await supabaseClient
         .from('courses')
-        .select('id, price');
+        .select('id, name, price');
 
     if (coursesError) {
         console.error('تعذر جلب الكورسات:', coursesError.message);
@@ -31,6 +31,7 @@ async function fetchCourses() {
     // 3) دمج القائمتين محلياً: كل كورس مع حالة امتلاكه
     return allCourses.map(course => ({
         id: course.id,
+        name: course.name,
         price: course.price,
         owned: ownedIds.has(course.id),
     }));
@@ -46,15 +47,15 @@ function renderCourses(courses) {
     }
 
     container.innerHTML = courses.map(course => `
-        <div class="course-card">
-            <span>الكورس: ${course.id}</span>
-            <span>السعر: ${course.price}</span>
-            <span>${course.owned ? '✅ مملوك' : '🔒 غير مشترى'}</span>
-            ${course.owned
-                ? ''
-                : `<button onclick="purchaseCourse('${course.id}', this)">شراء</button>`}
-        </div>
-    `).join('');
+    <div class="course-card">
+        <span>الكورس: ${course.name}</span>
+        <span>السعر: ${course.price}</span>
+        <span>${course.owned ? '✅ مملوك' : '🔒 غير مشترى'}</span>
+        ${course.owned
+            ? ''
+            : `<button onclick="purchaseCourse(${course.id}, this)">شراء</button>`}
+    </div>
+`).join('');
 }
 
 async function refreshCourses() {

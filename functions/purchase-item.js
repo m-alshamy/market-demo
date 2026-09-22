@@ -20,10 +20,11 @@ export async function onRequestPost({ request, env }) {
 
     const body = (await request.json().catch(() => ({}))) || {};
     const accessToken = body.access_token;
-    const courseId = body.course_id;
+    const courseId = Number(body.course_id);
+
 
     if (!accessToken) return json(401, { error: "يجب تسجيل الدخول" });
-    if (!courseId || typeof courseId !== "string") return json(400, { error: "كورس غير صالح" });
+    if (!Number.isInteger(courseId) || courseId <= 0) return json(400, { error: "كورس غير صالح" });
 
     const user = await getUser(env, accessToken);
     if (!user || !user.id) return json(401, { error: "الجلسة غير صالحة" });
