@@ -50,7 +50,7 @@ async function loadUserData(userId, forceRefresh = false) {
                 renderUserData(JSON.parse(cached));
                 return;
             } catch (e) {
-                localStorage.removeItem(USER_DATA_CACHE_KEY);
+                clearCachedUserData();
             }
         }
     }
