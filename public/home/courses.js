@@ -1,39 +1,32 @@
 // يعتمد على supabaseClient المُعرَّف في interface.js، حمّله بعده في index.html
 
 async function fetchCourses() {
-    // 1) كل الكورسات المتاحة: المعرف والسعر، من جدول courses مباشرة
-    const { data: allCourses, error: coursesError } = await supabaseClient
+    // التحقق من الجلسة الحالية
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    
+    // جلب الكورسات مع دمج جدول المشتريات في استعلام واحد
+    // سياسات RLS ستضمن إرجاع المشتريات الخاصة بالمستخدم الحالي فقط
+    const { data, error } = await supabaseClient
         .from('courses')
-        .select('id, name, price');
+        .select(`
+            id,
+            name,
+            price,
+            purchases ( course_id )
+        `);
 
-    if (coursesError) {
-        console.error('تعذر جلب الكورسات:', coursesError.message);
+    if (error) {
+        console.error('تعذر جلب البيانات:', error.message);
         return [];
     }
 
-    // 2) معرفات الكورسات المملوكة لهذا المستخدم فقط، من جدول purchases
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    let ownedIds = new Set();
-
-    if (session) {
-        const { data: owned, error: ownedError } = await supabaseClient
-            .from('purchases')
-            .select('course_id')
-            .eq('user_id', session.user.id);
-
-        if (ownedError) {
-            console.error('تعذر جلب المشتريات:', ownedError.message);
-        } else {
-            ownedIds = new Set(owned.map(row => row.course_id));
-        }
-    }
-
-    // 3) دمج القائمتين محلياً: كل كورس مع حالة امتلاكه
-    return allCourses.map(course => ({
+    // تحويل البيانات المستلمة إلى الشكل المطلوب محلياً
+    return data.map(course => ({
         id: course.id,
         name: course.name,
         price: course.price,
-        owned: ownedIds.has(course.id),
+        // الكورس يعتبر مملوكاً إذا كانت مصفوفة المشتريات تحتوي على عناصر
+        owned: course.purchases && course.purchases.length > 0
     }));
 }
 
@@ -55,7 +48,7 @@ function renderCourses(courses) {
             ? ''
             : `<button onclick="purchaseCourse(${course.id}, this)">شراء</button>`}
     </div>
-`).join('');
+    `).join('');
 }
 
 async function refreshCourses() {
