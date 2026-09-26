@@ -5,7 +5,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // في interface.js، جنب تعريف supabaseClient الموجود بالفعل
 const supabasePublic = supabase.createClient(
   window.location.origin,
-  SUPABASE_KEY   // نفس المفتاح اللي بتستخدمه في supabaseClient
+  SUPABASE_KEY    // نفس المفتاح اللي بتستخدمه في supabaseClient
 );
 
 const userEmailSpan = document.getElementById('user-email');
