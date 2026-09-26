@@ -3,30 +3,40 @@
 async function fetchCourses() {
     // التحقق من الجلسة الحالية
     const { data: { session } } = await supabaseClient.auth.getSession();
-    
-    // جلب الكورسات مع دمج جدول المشتريات في استعلام واحد
-    // سياسات RLS ستضمن إرجاع المشتريات الخاصة بالمستخدم الحالي فقط
-    const { data, error } = await supabaseClient
-        .from('courses')
-        .select(`
-            id,
-            name,
-            price,
-            purchases ( course_id )
-        `);
 
-    if (error) {
-        console.error('تعذر جلب البيانات:', error.message);
+    // 1) بيانات الكورسات العامة فقط (نفس النتيجة لكل الزوار) — من العميل
+    //    القابل للكاش (supabasePublic)، يمر عبر /rest/v1/courses على موقعنا.
+    const { data: courses, error: coursesError } = await supabasePublic
+        .from('courses')
+        .select('id, name, price');
+
+    if (coursesError) {
+        console.error('تعذر جلب الكورسات:', coursesError.message);
         return [];
     }
 
-    // تحويل البيانات المستلمة إلى الشكل المطلوب محلياً
-    return data.map(course => ({
+    // 2) مشتريات المستخدم الحالي فقط — بيانات شخصية، لازم تُستعلم دائماً
+    //    من العميل الأساسي (supabaseClient) بدون أي كاش، حتى لا يتسرب
+    //    وضع "مملوك/غير مملوك" الخاص بمستخدم إلى مستخدم آخر.
+    let ownedIds = new Set();
+    if (session) {
+        const { data: purchases, error: purchasesError } = await supabaseClient
+            .from('purchases')
+            .select('course_id');
+
+        if (purchasesError) {
+            console.error('تعذر جلب المشتريات:', purchasesError.message);
+        } else {
+            ownedIds = new Set(purchases.map((p) => p.course_id));
+        }
+    }
+
+    // دمج الجزء العام (المخزّن مؤقتاً) مع الجزء الشخصي (الحي دائماً) محلياً
+    return courses.map((course) => ({
         id: course.id,
         name: course.name,
         price: course.price,
-        // الكورس يعتبر مملوكاً إذا كانت مصفوفة المشتريات تحتوي على عناصر
-        owned: course.purchases && course.purchases.length > 0
+        owned: ownedIds.has(course.id),
     }));
 }
 
