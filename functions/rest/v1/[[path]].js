@@ -21,7 +21,7 @@ const CACHEABLE_PREFIXES = [
   { prefix: "/rest/v1/books", ttl: 60 * 60 * 6 },    // 6 ساعات
 ];
 
-export async function onRequest({ request, env, ctx }) {
+export async function onRequest({ request, env, waitUntil }) {
   const missing = missingEnv(env, REQUIRED_ENV);
   if (missing.length) {
     console.error(`rest-cache: إعدادات ناقصة: ${missing.join(", ")}`);
@@ -30,6 +30,7 @@ export async function onRequest({ request, env, ctx }) {
 
   const url = new URL(request.url);
 
+  // غير GET (أو أي مسار غير عام) → تمرير مباشر بدون كاش
   if (request.method !== "GET") {
     return proxyToSupabase(request, env, url);
   }
@@ -39,10 +40,10 @@ export async function onRequest({ request, env, ctx }) {
     return proxyToSupabase(request, env, url);
   }
 
-  return handleCacheable(request, env, ctx, url, match.ttl);
+  return handleCacheable(request, env, waitUntil, url, match.ttl);
 }
 
-async function handleCacheable(request, env, ctx, url, ttlSeconds) {
+async function handleCacheable(request, env, waitUntil, url, ttlSeconds) {
   const cacheKey = new Request(url.toString(), request);
   const cache = caches.default;
 
@@ -60,7 +61,7 @@ async function handleCacheable(request, env, ctx, url, ttlSeconds) {
   toCache.headers.set("Cache-Control", `public, max-age=${ttlSeconds}`);
   toCache.headers.set("X-Cache-Status", "MISS");
 
-  ctx.waitUntil(cache.put(cacheKey, toCache.clone()));
+  waitUntil(cache.put(cacheKey, toCache.clone()));
   return toCache;
 }
 
@@ -72,6 +73,7 @@ async function proxyToSupabase(request, env, url) {
   if (!headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${env.SUPABASE_ANON_KEY}`);
   }
+  // إزالة هيدرز خاصة بدومين موقعك حتى لا تسبب مشاكل عند التمرير لدومين آخر
   headers.delete("host");
   headers.delete("cf-connecting-ip");
 
