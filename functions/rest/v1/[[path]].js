@@ -65,7 +65,7 @@ async function handleCacheable(request, env, waitUntil, url, ttlSeconds) {
   if (!upstream.ok) return upstream;
 
   const toCache = new Response(upstream.body, upstream);
-  toCache.headers.set("Cache-Control", `public, max-age=${ttlSeconds}`);
+  toCache.headers.set("Cache-Control", `public, max-age=${ttlSeconds}, s-maxage=${ttlSeconds}`);
   toCache.headers.set("X-Cache-Status", "MISS");
 
   // === وضع تشخيص مؤقت: ننتظر الكتابة فعليًا (بدل الخلفية) عشان نشوف أي خطأ ===
