@@ -47,7 +47,14 @@ async function handleCacheable(request, env, waitUntil, url, ttlSeconds) {
   const cacheKey = new Request(url.toString(), request);
   const cache = caches.default;
 
-  const hit = await cache.match(cacheKey);
+  let hit = null;
+  let matchError = null;
+  try {
+    hit = await cache.match(cacheKey);
+  } catch (e) {
+    matchError = e.message;
+  }
+
   if (hit) {
     const res = new Response(hit.body, hit);
     res.headers.set("X-Cache-Status", "HIT");
@@ -61,7 +68,17 @@ async function handleCacheable(request, env, waitUntil, url, ttlSeconds) {
   toCache.headers.set("Cache-Control", `public, max-age=${ttlSeconds}`);
   toCache.headers.set("X-Cache-Status", "MISS");
 
-  waitUntil(cache.put(cacheKey, toCache.clone()));
+  // === وضع تشخيص مؤقت: ننتظر الكتابة فعليًا (بدل الخلفية) عشان نشوف أي خطأ ===
+  let writeError = null;
+  try {
+    await cache.put(cacheKey, toCache.clone());
+  } catch (e) {
+    writeError = e.message;
+  }
+  toCache.headers.set("X-Cache-Write", writeError ? `FAILED: ${writeError}` : "OK");
+  if (matchError) toCache.headers.set("X-Cache-Match-Error", matchError);
+  // === نهاية وضع التشخيص — هنشيله بعد ما نلاقي السبب ونرجّع waitUntil ===
+
   return toCache;
 }
 
